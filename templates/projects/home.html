@@ -1,0 +1,67 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="jumbotron bg-primary text-white">
+        <h1 class="display-4">Добро пожаловать в Task Manager!</h1>
+        <p class="lead">Эффективное управление проектами и задачами</p>
+        <hr class="my-4">
+        <p>Организуйте свою работу, отслеживайте прогресс и достигайте целей вместе с нашим приложением.</p>
+        <a class="btn btn-light btn-lg" href="{% url 'register' %}" role="button">Начать работу</a>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3>Управление проектами</h3>
+                </div>
+                <div class="card-body">
+                    <p>Создавайте проекты, отслеживайте их прогресс и управляйте командой.</p>
+                    <ul>
+                        <li>Детальное описание проектов</li>
+                        <li>Отслеживание сроков</li>
+                        <li>Визуализация прогресса</li>
+                    </ul>
+                    <a href="{% url 'project-list' %}" class="btn btn-primary">Перейти к проектам</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3>Управление задачами</h3>
+                </div>
+                <div class="card-body">
+                    <p>Создавайте задачи, назначайте исполнителей и отслеживайте выполнение.</p>
+                    <ul>
+                        <li>Приоритеты и статусы</li>
+                        <li>Сроки выполнения</li>
+                        <li>Уведомления о просрочках</li>
+                    </ul>
+                    <a href="{% url 'task-list' %}" class="btn btn-primary">Перейти к задачам</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3>Статистика и отчеты</h3>
+                </div>
+                <div class="card-body">
+                    <p>Анализируйте эффективность работы с помощью наглядных графиков и отчетов.</p>
+                    <ul>
+                        <li>Визуализация данных</li>
+                        <li>Отслеживание прогресса</li>
+                        <li>Аналитика производительности</li>
+                    </ul>
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">Перейти к статистике</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

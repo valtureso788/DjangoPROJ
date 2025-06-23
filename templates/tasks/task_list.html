@@ -1,0 +1,216 @@
+{% extends "base/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Поиск и фильтрация задач</h2>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'task-list' %}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="search">Поиск по названию или описанию:</label>
+                                    <input type="text" name="search" id="search" class="form-control" 
+                                           value="{{ request.GET.search|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="project">Проект:</label>
+                                    <select name="project" id="project" class="form-control">
+                                        <option value="">Все проекты</option>
+                                        {% for project in user_projects %}
+                                            <option value="{{ project.id }}" {% if request.GET.project == project.id|stringformat:"i" %}selected{% endif %}>
+                                                {{ project.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="status">Статус:</label>
+                                    <select name="status" id="status" class="form-control">
+                                        <option value="">Все статусы</option>
+                                        {% for status_code, status_name in status_choices %}
+                                            <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>
+                                                {{ status_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="priority">Приоритет:</label>
+                                    <select name="priority" id="priority" class="form-control">
+                                        <option value="">Все приоритеты</option>
+                                        {% for priority_code, priority_name in priority_choices %}
+                                            <option value="{{ priority_code }}" {% if request.GET.priority == priority_code %}selected{% endif %}>
+                                                {{ priority_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="due_date_from">Срок выполнения (от):</label>
+                                    <input type="date" name="due_date_from" id="due_date_from" class="form-control"
+                                           value="{{ request.GET.due_date_from|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="due_date_to">Срок выполнения (до):</label>
+                                    <input type="date" name="due_date_to" id="due_date_to" class="form-control"
+                                           value="{{ request.GET.due_date_to|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                            <a href="{% url 'task-list' %}" class="btn btn-secondary">Сбросить</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">Мои задачи</h2>
+                    <a href="{% url 'task-create' %}" class="btn btn-light">Создать задачу</a>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <div class="list-group">
+                            {% for task in tasks %}
+                                <div class="list-group-item {% if task.is_overdue %}list-group-item-danger{% endif %}">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">
+                                            <a href="{% url 'task-detail' task.id %}">{{ task.title }}</a>
+                                            {% if task.priority == 'urgent' %}
+                                                <span class="badge bg-danger">Срочно</span>
+                                            {% elif task.priority == 'high' %}
+                                                <span class="badge bg-warning text-dark">Высокий</span>
+                                            {% endif %}
+                                        </h5>
+                                        <small>
+                                            {% if task.due_date %}
+                                                Срок: {{ task.due_date|date:"d.m.Y" }}
+                                                {% if task.is_overdue %}
+                                                    <span class="text-danger">(просрочено)</span>
+                                                {% endif %}
+                                            {% else %}
+                                                Без срока
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <p class="mb-1">{{ task.description|truncatechars:150 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small>Проект: <a href="{% url 'project-detail' task.project.id %}">{{ task.project.name }}</a></small>
+                                            <br>
+                                            <small>
+                                                Статус: 
+                                                {% if task.status == 'new' %}
+                                                    <span class="badge bg-secondary">Новая</span>
+                                                {% elif task.status == 'in_progress' %}
+                                                    <span class="badge bg-primary">В процессе</span>
+                                                {% elif task.status == 'on_hold' %}
+                                                    <span class="badge bg-warning text-dark">На паузе</span>
+                                                {% elif task.status == 'completed' %}
+                                                    <span class="badge bg-success">Завершена</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            {% if task.status != 'completed' %}
+                                                <a href="{% url 'task-complete' task.id %}" class="btn btn-sm btn-success">Завершить</a>
+                                            {% endif %}
+                                            <a href="{% url 'task-update' task.id %}" class="btn btn-sm btn-primary">Изменить</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if is_paginated %}
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Первая</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Предыдущая</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Следующая</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Последняя</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            У вас пока нет задач. <a href="{% url 'task-create' %}">Создайте свою первую задачу</a>!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Статистика задач</h3>
+                </div>
+                <div class="card-body">
+                    <p>Всего задач: <strong>{{ tasks.count }}</strong></p>
+                    <p>Завершено: <strong>{{ tasks.count|default:0 }}</strong></p>
+                    <p>Просрочено: <strong>{{ overdue_tasks|default:0 }}</strong></p>
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-block">Перейти к дашборду</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Быстрые действия</h3>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'task-create' %}" class="btn btn-success btn-block mb-2">Создать задачу</a>
+                    <a href="{% url 'project-create' %}" class="btn btn-info btn-block">Создать проект</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

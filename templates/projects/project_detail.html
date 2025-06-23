@@ -1,0 +1,254 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ project.name }}</h2>
+                    {% if can_edit %}
+                    <div>
+                        <a href="{% url 'project-update' project.id %}" class="btn btn-light">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        <a href="{% url 'project-delete' project.id %}" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Удалить
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Описание:</h5>
+                        <p class="border rounded p-3 bg-light">{{ project.description|linebreaks }}</p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Даты проекта</h5>
+                                    <p><strong>Начало:</strong> {{ project.start_date|date:"d.m.Y" }}</p>
+                                    {% if project.end_date %}
+                                        <p><strong>Окончание:</strong> {{ project.end_date|date:"d.m.Y" }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Информация</h5>
+                                    <p><strong>Владелец:</strong> {{ project.owner.username }}</p>
+                                    <p><strong>Создан:</strong> {{ project.created_at|date:"d.m.Y H:i" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Прогресс проекта:</h5>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ project.progress }}%;" 
+                                 aria-valuenow="{{ project.progress }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ project.progress }}%
+                            </div>
+                        </div>
+                        <p class="mt-2 text-muted">
+                            Завершено {{ project.completed_task_count }} из {{ project.task_count }} задач
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Задачи проекта</h3>
+                    <a href="{% url 'task-create' %}?project={{ project.id }}" class="btn btn-light">
+                        <i class="fas fa-plus"></i> Добавить задачу
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <div class="list-group">
+                            {% for task in tasks %}
+                                <div class="list-group-item {% if task.is_overdue %}list-group-item-danger{% endif %}">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">
+                                            <a href="{% url 'task-detail' task.id %}" class="text-decoration-none">
+                                                {{ task.title }}
+                                            </a>
+                                            {% if task.priority == 'urgent' %}
+                                                <span class="badge bg-danger">Срочно</span>
+                                            {% elif task.priority == 'high' %}
+                                                <span class="badge bg-warning text-dark">Высокий</span>
+                                            {% endif %}
+                                        </h5>
+                                        <small>
+                                            {% if task.due_date %}
+                                                Срок: {{ task.due_date|date:"d.m.Y" }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <p class="mb-1">{{ task.description|truncatechars:150 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div>
+                                            <small class="text-muted">
+                                                Исполнитель: 
+                                                {% if task.assigned_to %}
+                                                    {{ task.assigned_to.username }}
+                                                {% else %}
+                                                    Не назначен
+                                                {% endif %}
+                                            </small>
+                                            <br>
+                                            <small>
+                                                Статус: 
+                                                {% if task.status == 'new' %}
+                                                    <span class="badge bg-secondary">Новая</span>
+                                                {% elif task.status == 'in_progress' %}
+                                                    <span class="badge bg-primary">В процессе</span>
+                                                {% elif task.status == 'on_hold' %}
+                                                    <span class="badge bg-warning text-dark">На паузе</span>
+                                                {% elif task.status == 'completed' %}
+                                                    <span class="badge bg-success">Завершена</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            {% if task.status != 'completed' and task.assigned_to == user %}
+                                                <a href="{% url 'task-complete' task.id %}" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-check"></i> Завершить
+                                                </a>
+                                            {% endif %}
+                                            {% if task.created_by == user %}
+                                                <a href="{% url 'task-update' task.id %}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit"></i> Изменить
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            В этом проекте пока нет задач. 
+                            <a href="{% url 'task-create' %}?project={{ project.id }}" class="alert-link">
+                                Создайте первую задачу
+                            </a>!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Статистика проекта</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="taskStatusChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Быстрые действия</h3>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'task-create' %}?project={{ project.id }}" class="btn btn-success btn-block mb-2">
+                        <i class="fas fa-plus"></i> Создать задачу
+                    </a>
+                    <a href="{% url 'project-list' %}" class="btn btn-secondary btn-block">
+                        <i class="fas fa-list"></i> Все проекты
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('taskStatusChart').getContext('2d');
+    const taskStatuses = {{ task_statuses|safe }};
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Новые', 'В процессе', 'Завершены', 'На паузе'],
+            datasets: [{
+                data: [
+                    taskStatuses.new,
+                    taskStatuses.in_progress,
+                    taskStatuses.completed,
+                    taskStatuses.on_hold
+                ],
+                backgroundColor: [
+                    '#6c757d',
+                    '#0d6efd',
+                    '#198754',
+                    '#ffc107'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress {
+        background-color: #e9ecef;
+        border-radius: 0.375rem;
+    }
+    
+    .progress-bar {
+        transition: width 0.6s ease;
+    }
+    
+    .list-group-item {
+        transition: background-color 0.2s ease;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .badge {
+        font-size: 0.875em;
+        padding: 0.35em 0.65em;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .card-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+</style>
+{% endblock %}
+{% endblock %}

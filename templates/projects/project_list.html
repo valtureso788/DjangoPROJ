@@ -1,0 +1,145 @@
+{% extends "base/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Поиск и фильтрация проектов</h2>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'project-list' %}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="search">Поиск по названию или описанию:</label>
+                                    <input type="text" name="search" id="search" class="form-control" 
+                                           value="{{ request.GET.search|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="date_from">Дата начала (от):</label>
+                                    <input type="date" name="date_from" id="date_from" class="form-control"
+                                           value="{{ request.GET.date_from|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="date_to">Дата начала (до):</label>
+                                    <input type="date" name="date_to" id="date_to" class="form-control"
+                                           value="{{ request.GET.date_to|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="sort">Сортировать по:</label>
+                                    <select name="sort" id="sort" class="form-control">
+                                        <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Названию</option>
+                                        <option value="-name" {% if request.GET.sort == '-name' %}selected{% endif %}>Названию (по убыванию)</option>
+                                        <option value="start_date" {% if request.GET.sort == 'start_date' %}selected{% endif %}>Дате начала</option>
+                                        <option value="-start_date" {% if request.GET.sort == '-start_date' %}selected{% endif %}>Дате начала (по убыванию)</option>
+                                        <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Дате создания (по убыванию)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                            <a href="{% url 'project-list' %}" class="btn btn-secondary">Сбросить</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">Мои проекты</h2>
+                    <a href="{% url 'project-create' %}" class="btn btn-light">Создать проект</a>
+                </div>
+                <div class="card-body">
+                    {% if projects %}
+                        <div class="list-group">
+                            {% for project in projects %}
+                                <a href="{% url 'project-detail' project.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ project.name }}</h5>
+                                        <small>Создан: {{ project.created_at|date:"d.m.Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ project.description|truncatechars:150 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small>Задач: {{ project.task_count }} ({{ project.completed_task_count }} завершено)</small>
+                                        <div class="progress" style="width: 50%;">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ project.progress }}%;" 
+                                                 aria-valuenow="{{ project.progress }}" aria-valuemin="0" aria-valuemax="100">
+                                                {{ project.progress }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if is_paginated %}
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Первая</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Предыдущая</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Следующая</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Последняя</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            У вас пока нет проектов. <a href="{% url 'project-create' %}">Создайте свой первый проект</a>!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Статистика</h3>
+                </div>
+                <div class="card-body">
+                    <p>Всего проектов: <strong>{{ projects.count }}</strong></p>
+                    <p>Активных задач: <strong>{{ request.user.assigned_tasks.count }}</strong></p>
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-block">Перейти к дашборду</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Добро пожаловать в WebApplication{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-lg border-0 rounded-lg mt-5">
+            <div class="card-header bg-primary text-white">
+                <h1 class="text-center font-weight-light my-4">Добро пожаловать в WebApplication</h1>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <img src="https://via.placeholder.com/600x400" alt="WebApplication" class="img-fluid rounded">
+                    </div>
+                    <div class="col-lg-6">
+                        <h2 class="mb-4">Управляйте проектами эффективно</h2>
+                        <p class="lead">WebApplication - это современная система управления проектами и задачами, которая поможет вам и вашей команде работать продуктивнее.</p>
+                        <hr>
+                        <h4>Основные возможности:</h4>
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Создание и управление проектами</li>
+                            <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Отслеживание задач и сроков</li>
+                            <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Командная работа и делегирование</li>
+                            <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Аналитика и статистика</li>
+                        </ul>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4 me-md-2">Регистрация</a>
+                            <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg px-4">Войти</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+                        <h3>Управление задачами</h3>
+                        <p>Создавайте задачи, устанавливайте приоритеты и отслеживайте прогресс выполнения.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                        <h3>Командная работа</h3>
+                        <p>Приглашайте участников в проекты и распределяйте задачи между членами команды.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                        <h3>Аналитика</h3>
+                        <p>Получайте подробную статистику по проектам и задачам для оптимизации работы.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

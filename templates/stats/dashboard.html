@@ -1,0 +1,214 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Дашборд</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card text-white bg-primary">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Проекты</h5>
+                                    <h2>{{ total_user_projects }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-success">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Задачи</h5>
+                                    <h2>{{ total_user_tasks }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-info">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Завершено</h5>
+                                    <h2>{{ completed_user_tasks }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-danger">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Просрочено</h5>
+                                    <h2>{{ overdue_user_tasks }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mb-4" style="height: 25px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ completion_rate }}%;" 
+                             aria-valuenow="{{ completion_rate }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ completion_rate }}% задач завершено
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Задачи по статусам</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Задачи по приоритетам</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="priorityChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Быстрые действия</h3>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'task-create' %}" class="btn btn-success btn-block mb-2">Создать задачу</a>
+                    <a href="{% url 'project-create' %}" class="btn btn-info btn-block mb-2">Создать проект</a>
+                    <a href="{% url 'task-list' %}" class="btn btn-secondary btn-block mb-2">Все задачи</a>
+                    <a href="{% url 'project-list' %}" class="btn btn-secondary btn-block mb-2">Все проекты</a>
+                    <a href="{% url 'statistics' %}" class="btn btn-primary btn-block">Подробная статистика</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Советы</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Совет:</strong> Регулярно обновляйте статус задач для точной статистики.
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>Напоминание:</strong> У вас {{ overdue_user_tasks }} просроченных задач.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Данные для графика статусов
+    const statusData = {
+        labels: [
+            'Новые', 'В процессе', 'На паузе', 'Завершенные'
+        ],
+        datasets: [{
+            label: 'Задачи по статусам',
+            data: [
+                {{ status_data.new|default:0 }},
+                {{ status_data.in_progress|default:0 }},
+                {{ status_data.on_hold|default:0 }},
+                {{ status_data.completed|default:0 }}
+            ],
+            backgroundColor: [
+                'rgba(108, 117, 125, 0.7)',  // new - серый
+                'rgba(0, 123, 255, 0.7)',    // in_progress - синий
+                'rgba(255, 193, 7, 0.7)',    // on_hold - желтый
+                'rgba(40, 167, 69, 0.7)',    // completed - зеленый
+            ],
+            borderColor: [
+                'rgb(108, 117, 125)',
+                'rgb(0, 123, 255)',
+                'rgb(255, 193, 7)',
+                'rgb(40, 167, 69)',
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // Данные для графика приоритетов
+    const priorityData = {
+        labels: [
+            'Низкий', 'Средний', 'Высокий', 'Срочный'
+        ],
+        datasets: [{
+            label: 'Задачи по приоритетам',
+            data: [
+                {{ priority_data.low|default:0 }},
+                {{ priority_data.medium|default:0 }},
+                {{ priority_data.high|default:0 }},
+                {{ priority_data.urgent|default:0 }}
+            ],
+            backgroundColor: [
+                'rgba(108, 117, 125, 0.7)',  // low - серый
+                'rgba(0, 123, 255, 0.7)',    // medium - синий
+                'rgba(255, 193, 7, 0.7)',    // high - желтый
+                'rgba(220, 53, 69, 0.7)',    // urgent - красный
+            ],
+            borderColor: [
+                'rgb(108, 117, 125)',
+                'rgb(0, 123, 255)',
+                'rgb(255, 193, 7)',
+                'rgb(220, 53, 69)',
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // Создание графиков
+    window.addEventListener('DOMContentLoaded', (event) => {
+        // График статусов
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'pie',
+            data: statusData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Распределение задач по статусам'
+                    }
+                }
+            }
+        });
+
+        // График приоритетов
+        const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+        const priorityChart = new Chart(priorityCtx, {
+            type: 'pie',
+            data: priorityData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Распределение задач по приоритетам'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

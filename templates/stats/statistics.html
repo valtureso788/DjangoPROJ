@@ -1,0 +1,245 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Статистика и аналитика</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Задачи по статусам</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Задачи по приоритетам</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="priorityChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Активность за последние 7 дней</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Общая статистика</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h5>Проекты</h5>
+                        <p>Всего проектов: <strong>{{ total_projects }}</strong></p>
+                        <p>Ваши проекты: <strong>{{ user_projects }}</strong></p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h5>Задачи</h5>
+                        <p>Всего задач: <strong>{{ total_tasks }}</strong></p>
+                        <p>Ваши задачи: <strong>{{ user_tasks }}</strong></p>
+                        <p>Завершенные задачи: <strong>{{ user_completed_tasks }}</strong></p>
+                    </div>
+                    
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ completion_rate }}%;" 
+                             aria-valuenow="{{ completion_rate }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ completion_rate }}% завершено
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Быстрые действия</h3>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'task-create' %}" class="btn btn-success btn-block mb-2">Создать задачу</a>
+                    <a href="{% url 'project-create' %}" class="btn btn-info btn-block mb-2">Создать проект</a>
+                    <a href="{% url 'task-list' %}" class="btn btn-secondary btn-block">Все задачи</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Данные для графика статусов
+    const statusData = {
+        labels: [
+            {% for status, name in status_stats.items %}
+                '{{ name }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Задачи по статусам',
+            data: [
+                {% for status, count in status_stats.items %}
+                    {{ count }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                'rgba(108, 117, 125, 0.7)',  // new - серый
+                'rgba(0, 123, 255, 0.7)',    // in_progress - синий
+                'rgba(255, 193, 7, 0.7)',    // on_hold - желтый
+                'rgba(40, 167, 69, 0.7)',    // completed - зеленый
+            ],
+            borderColor: [
+                'rgb(108, 117, 125)',
+                'rgb(0, 123, 255)',
+                'rgb(255, 193, 7)',
+                'rgb(40, 167, 69)',
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // Данные для графика приоритетов
+    const priorityData = {
+        labels: [
+            {% for priority, name in priority_stats.items %}
+                '{{ name }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Задачи по приоритетам',
+            data: [
+                {% for priority, count in priority_stats.items %}
+                    {{ count }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                'rgba(108, 117, 125, 0.7)',  // low - серый
+                'rgba(0, 123, 255, 0.7)',    // medium - синий
+                'rgba(255, 193, 7, 0.7)',    // high - желтый
+                'rgba(220, 53, 69, 0.7)',    // urgent - красный
+            ],
+            borderColor: [
+                'rgb(108, 117, 125)',
+                'rgb(0, 123, 255)',
+                'rgb(255, 193, 7)',
+                'rgb(220, 53, 69)',
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // Данные для графика активности
+    const activityData = {
+        labels: {{ dates|safe }},
+        datasets: [
+            {
+                label: 'Созданные задачи',
+                data: {{ tasks_created_data|safe }},
+                borderColor: 'rgb(0, 123, 255)',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.1,
+                fill: true
+            },
+            {
+                label: 'Завершенные задачи',
+                data: {{ tasks_completed_data|safe }},
+                borderColor: 'rgb(40, 167, 69)',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.1,
+                fill: true
+            }
+        ]
+    };
+
+    // Создание графиков
+    window.addEventListener('DOMContentLoaded', (event) => {
+        // График статусов
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'pie',
+            data: statusData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Распределение задач по статусам'
+                    }
+                }
+            }
+        });
+
+        // График приоритетов
+        const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+        const priorityChart = new Chart(priorityCtx, {
+            type: 'pie',
+            data: priorityData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Распределение задач по приоритетам'
+                    }
+                }
+            }
+        });
+
+        // График активности
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        const activityChart = new Chart(activityCtx, {
+            type: 'line',
+            data: activityData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Активность за последние 7 дней'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

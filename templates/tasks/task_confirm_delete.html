@@ -1,0 +1,90 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Удалить задачу - {{ object.title }} - WebApplication{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Подтверждение удаления
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-warning"></i>
+                    <strong>Внимание!</strong> Вы действительно хотите удалить эту задачу? Это действие нельзя отменить.
+                </div>
+                
+                <div class="task-info bg-light p-3 rounded mb-4">
+                    <h5 class="mb-3">Информация о задаче:</h5>
+                    <p><strong>Название:</strong> {{ object.title }}</p>
+                    <p><strong>Проект:</strong> 
+                        {% if object.project %}
+                            {{ object.project.name }}
+                        {% else %}
+                            <span class="text-muted">Не указан</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Статус:</strong> 
+                        <span class="badge 
+                            {% if object.status == 'new' %}bg-secondary
+                            {% elif object.status == 'in_progress' %}bg-primary
+                            {% elif object.status == 'completed' %}bg-success
+                            {% elif object.status == 'cancelled' %}bg-danger
+                            {% endif %}">
+                            {{ object.get_status_display }}
+                        </span>
+                    </p>
+                    <p><strong>Создана:</strong> {{ object.created_at|date:"d.m.Y H:i" }}</p>
+                    {% if object.description %}
+                    <p><strong>Описание:</strong></p>
+                    <div class="border rounded p-2 bg-white">
+                        {{ object.description|truncatewords:20|linebreaks }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'task-detail' object.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Да, удалить задачу
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card.border-danger {
+        border-width: 2px;
+    }
+    
+    .task-info {
+        border-left: 4px solid #dc3545;
+    }
+    
+    .task-info p {
+        margin-bottom: 0.5rem;
+    }
+    
+    .task-info p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .badge {
+        font-size: 0.875em;
+    }
+</style>
+{% endblock %}
+

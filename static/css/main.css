@@ -1,0 +1,99 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+.jumbotron {
+    border-radius: 0.5rem;
+    padding: 2rem;
+}
+
+.progress {
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+}
+
+.list-group-item:first-child {
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+}
+
+.list-group-item:last-child {
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+footer {
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Стили для профиля пользователя */
+.profile-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Стили для задач с разными приоритетами */
+.priority-urgent {
+    border-left: 5px solid #dc3545;
+}
+
+.priority-high {
+    border-left: 5px solid #ffc107;
+}
+
+.priority-medium {
+    border-left: 5px solid #0d6efd;
+}
+
+.priority-low {
+    border-left: 5px solid #6c757d;
+}
+
+/* Анимации для графиков */
+.chart-container {
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    transform: scale(1.02);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .jumbotron {
+        padding: 1.5rem;
+    }
+    
+    .profile-img {
+        width: 100px;
+        height: 100px;
+    }
+}

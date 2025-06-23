@@ -1,0 +1,205 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ object.title }} - WebApplication{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-tasks"></i> {{ object.title }}
+                </h3>
+                <div class="task-actions">
+                    {% if user == object.created_by or user == object.assigned_to %}
+                        <a href="{% url 'task-update' object.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                    {% endif %}
+                    {% if user == object.created_by %}
+                        <a href="{% url 'task-delete' object.pk %}" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash"></i> Удалить
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Статус:</strong>
+                        <span class="badge 
+                            {% if object.status == 'new' %}bg-secondary
+                            {% elif object.status == 'in_progress' %}bg-primary
+                            {% elif object.status == 'completed' %}bg-success
+                            {% elif object.status == 'cancelled' %}bg-danger
+                            {% endif %}">
+                            {{ object.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Приоритет:</strong>
+                        <span class="badge 
+                            {% if object.priority == 'low' %}bg-info
+                            {% elif object.priority == 'medium' %}bg-warning
+                            {% elif object.priority == 'high' %}bg-danger
+                            {% endif %}">
+                            {{ object.get_priority_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Проект:</strong>
+                        {% if object.project %}
+                            <a href="{% url 'project-detail' object.project.pk %}" class="text-decoration-none">
+                                {{ object.project.name }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">Не указан</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Назначена:</strong>
+                        {% if object.assigned_to %}
+                            {{ object.assigned_to.get_full_name|default:object.assigned_to.username }}
+                        {% else %}
+                            <span class="text-muted">Не назначена</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Создана:</strong>
+                        {{ object.created_at|date:"d.m.Y H:i" }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Создал:</strong>
+                        {{ object.created_by.get_full_name|default:object.created_by.username }}
+                    </div>
+                </div>
+
+                {% if object.due_date %}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Срок выполнения:</strong>
+                        <span class="{% if object.due_date < today and object.status != 'completed' %}text-danger{% endif %}">
+                            {{ object.due_date|date:"d.m.Y" }}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Обновлена:</strong>
+                        {{ object.updated_at|date:"d.m.Y H:i" }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if object.description %}
+                <div class="mt-4">
+                    <h5>Описание:</h5>
+                    <div class="border rounded p-3 bg-light">
+                        {{ object.description|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user == object.assigned_to and object.status != 'completed' %}
+                <div class="mt-4">
+                    <a href="{% url 'task-complete' object.pk %}" class="btn btn-success">
+                        <i class="fas fa-check"></i> Отметить как выполненную
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i> Информация
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">ID задачи:</small><br>
+                    <code>#{{ object.pk }}</code>
+                </div>
+                
+                {% if object.project %}
+                <div class="mb-3">
+                    <small class="text-muted">Проект:</small><br>
+                    <a href="{% url 'project-detail' object.project.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-folder"></i> {{ object.project.name }}
+                    </a>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <small class="text-muted">Прогресс:</small><br>
+                    <div class="progress">
+                        <div class="progress-bar 
+                            {% if object.status == 'new' %}bg-secondary
+                            {% elif object.status == 'in_progress' %}bg-primary
+                            {% elif object.status == 'completed' %}bg-success
+                            {% elif object.status == 'cancelled' %}bg-danger
+                            {% endif %}" 
+                            role="progressbar" 
+                            style="width: 
+                                {% if object.status == 'new' %}0%
+                                {% elif object.status == 'in_progress' %}50%
+                                {% elif object.status == 'completed' %}100%
+                                {% elif object.status == 'cancelled' %}0%
+                                {% endif %}"
+                            aria-valuenow="
+                                {% if object.status == 'new' %}0
+                                {% elif object.status == 'in_progress' %}50
+                                {% elif object.status == 'completed' %}100
+                                {% elif object.status == 'cancelled' %}0
+                                {% endif %}" 
+                            aria-valuemin="0" 
+                            aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <a href="{% url 'task-list' %}" class="btn btn-secondary w-100">
+                <i class="fas fa-arrow-left"></i> Назад к списку задач
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .task-actions .btn {
+        margin-left: 0.25rem;
+    }
+    
+    .badge {
+        font-size: 0.875em;
+    }
+    
+    .progress {
+        height: 0.5rem;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+</style>
+{% endblock %}
+
