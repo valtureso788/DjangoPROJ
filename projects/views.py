@@ -8,9 +8,12 @@ from django.urls import reverse_lazy
 from django.db.models import Q
 from .models import Project
 from tasks.models import Task
+from .forms import FeedbackForm
+from .models import Feedback
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
+    """Список проектов пользователя. Показывает проекты, где пользователь владелец или участник."""
     model = Project
     template_name = 'projects/project_list.html'
     context_object_name = 'projects'
@@ -25,6 +28,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
 
 class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """Детальная страница проекта. Показывает задачи, прогресс и права пользователя."""
     model = Project
     template_name = 'projects/project_detail.html'
     
@@ -47,6 +51,7 @@ class ProjectDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
+    """Создание нового проекта."""
     model = Project
     template_name = 'projects/project_form.html'
     fields = ['name', 'description', 'start_date', 'end_date']
@@ -58,6 +63,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
 
 class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Редактирование существующего проекта."""
     model = Project
     template_name = 'projects/project_form.html'
     fields = ['name', 'description', 'start_date', 'end_date']
@@ -72,6 +78,7 @@ class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 
 class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Удаление проекта."""
     model = Project
     template_name = 'projects/project_confirm_delete.html'
     success_url = reverse_lazy('project-list')
@@ -82,7 +89,7 @@ class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 def home(request):
-    """Главная страница"""
+    """Главная страница. Для авторизованных пользователей показывает проекты и задачи, для гостей — лендинг."""
     if request.user.is_authenticated:
         user_projects = Project.objects.filter(owner=request.user)[:5]
         user_tasks = Task.objects.filter(assigned_to=request.user).order_by('due_date')[:5]
@@ -94,3 +101,25 @@ def home(request):
         return render(request, 'projects/home.html', context)
     else:
         return render(request, 'projects/landing.html')
+
+
+class FeedbackCreateView(CreateView):
+    """Форма для создания нового отзыва. Позволяет оставить отзыв анонимно или с контактами."""
+    model = Feedback
+    form_class = FeedbackForm
+    template_name = 'projects/feedback_form.html'
+    success_url = reverse_lazy('feedback-list')
+
+    def form_valid(self, form):
+        if form.cleaned_data.get('anonymous'):
+            form.instance.email = None
+            form.instance.password = None
+        return super().form_valid(form)
+
+
+class FeedbackListView(ListView):
+    """Список всех отзывов пользователей (отображаются только отзывы с 5 звёздами)."""
+    model = Feedback
+    template_name = 'projects/feedback_list.html'
+    context_object_name = 'feedbacks'
+    paginate_by = 10

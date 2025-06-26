@@ -8,7 +8,7 @@
         <p class="lead">Эффективное управление проектами и задачами</p>
         <hr class="my-4">
         <p>Организуйте свою работу, отслеживайте прогресс и достигайте целей вместе с нашим приложением.</p>
-        <a class="btn btn-light btn-lg" href="{% url 'register' %}" role="button">Начать работу</a>
+        <a class="btn btn-light btn-lg" href="{% if user.is_authenticated %}{% url 'project-list' %}{% else %}{% url 'login' %}{% endif %}" role="button">Начать работу</a>
     </div>
     
     <div class="row mt-4">
@@ -63,5 +63,17 @@
             </div>
         </div>
     </div>
+</div>
+<!-- Кнопка поддержки -->
+<div class="container mt-4 mb-4 text-center">
+    <a href="mailto:afkaof@gmail.com" class="btn btn-outline-info btn-lg me-2">
+        Поддержка: afkaof@gmail.com
+    </a>
+    <a href="{% url 'feedback-create' %}" class="btn btn-outline-success btn-lg me-2">
+        Оставить отзыв
+    </a>
+    <a href="{% url 'feedback-list' %}" class="btn btn-outline-primary btn-lg">
+        Наши отзывы
+    </a>
 </div>
 {% endblock %}

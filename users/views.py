@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
+from projects.models import Project
+from tasks.models import Task
 
 
 def register(request):
@@ -34,9 +36,17 @@ def profile(request):
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=request.user.profile)
     
+    # Получаем проекты и задачи пользователя
+    user_projects = Project.objects.filter(owner=request.user)
+    user_tasks = Task.objects.filter(assigned_to=request.user)
+    
     context = {
         'u_form': u_form,
-        'p_form': p_form
+        'p_form': p_form,
+        'user_projects': user_projects,
+        'user_tasks': user_tasks,
+        'user_projects_count': user_projects.count(),
+        'user_tasks_count': user_tasks.count(),
     }
     
     return render(request, 'users/profile.html', context)

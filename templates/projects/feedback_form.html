@@ -1,0 +1,50 @@
+{% extends "base/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">Оставить отзыв</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.nickname|as_crispy_field }}
+                        {{ form.anonymous|as_crispy_field }}
+                        <div id="anon-fields">
+                            {{ form.email|as_crispy_field }}
+                            {{ form.password|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Оценка</label><br>
+                            {{ form.rating }}
+                        </div>
+                        {{ form.text|as_crispy_field }}
+                        <button type="submit" class="btn btn-info mt-3">Оставить отзыв</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const anonCheckbox = document.querySelector('input[name="anonymous"]');
+        const anonFields = document.getElementById('anon-fields');
+        function toggleAnonFields() {
+            if (anonCheckbox.checked) {
+                anonFields.style.display = 'none';
+            } else {
+                anonFields.style.display = '';
+            }
+        }
+        if (anonCheckbox) {
+            anonCheckbox.addEventListener('change', toggleAnonFields);
+            toggleAnonFields();
+        }
+    });
+</script>
+{% endblock %} 

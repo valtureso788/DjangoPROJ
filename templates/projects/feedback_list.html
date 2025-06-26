@@ -1,0 +1,58 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Наши отзывы</h3>
+                </div>
+                <div class="card-body">
+                    {% if feedbacks %}
+                        <ul class="list-group">
+                            {% for feedback in feedbacks %}
+                                {% if feedback.rating|add:0 == 5 %}
+                                <li class="list-group-item">
+                                    <strong>{% if not feedback.email and not feedback.password %}Анонимно{% else %}{{ feedback.nickname }}{% endif %}</strong>
+                                    <span class="text-muted float-end">{{ feedback.created_at|date:"d.m.Y H:i" }}</span>
+                                    <div class="mb-1">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= feedback.rating|add:0 %}
+                                                <span style="color:gold">★</span>
+                                            {% else %}
+                                                <span style="color:#ccc">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <p class="mt-2 mb-1">{{ feedback.text|linebreaks }}</p>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                        {% if is_paginated %}
+                            <nav class="mt-3">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
+                                        </li>
+                                    {% endif %}
+                                    <li class="page-item disabled"><span class="page-link">Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">Пока нет отзывов.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
